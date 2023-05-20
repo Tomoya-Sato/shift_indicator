@@ -558,11 +558,17 @@ class MCP2515():
             break
       self.WriteByte(CAN_RTS_TXB0)
     
-    def Lock(self, CAN_ID):
-      print("LOCK")
-      print(CAN_ID)
+    def LockBuffer0(self, CAN_ID):
+      print("LOCK Buffer0: " + str(CAN_ID))
+      self.WriteBytes(RXM0SIDH, 0xFF)
+      self.WriteBytes(RXM0SIDL, 0xFF)
       self.WriteBytes(RXF0SIDH, (CAN_ID>>3)&0xFF)
       self.WriteBytes(RXF0SIDL, (CAN_ID&0x07)<<5)
+
+    def LockBUffer1(sef, CAN_ID):
+      print("LOCK Buffer1: " + str(CAN_ID))
+      self.WriteBytes(RXM1SIDH, 0xFF)
+      self.WriteBytes(RXM1SIDL, 0xFF)
       self.WriteBytes(RXF1SIDH, (CAN_ID>>3)&0xFF)
       self.WriteBytes(RXF1SIDL, (CAN_ID&0x07)<<5)
     
@@ -733,31 +739,35 @@ if __name__ == '__main__':
   opening()
 
   can.Lock(513)
+
+  temp = 0
+  rpm = 0
   
   while(1):
     id, readbuf = can.Receive2()
     display.fill(0)
     if (id == 0x201):
       rpm = (int(readbuf[0]) * 256 + int(readbuf[1])) / 4
-      display.text("RPM   : " + str(rpm), 17, 17, True)
       print(rpm)
-      if (rpm > 9000):
+      if (rpm > 8800):
         showState6()
-      elif (rpm > 8800):
-        showState5()
       elif (rpm > 8600):
-        showState4()
+        showState5()
       elif (rpm > 8400):
-        showState3()
+        showState4()
       elif (rpm > 8200):
-        showState2()
+        showState3()
       elif (rpm > 8000):
+        showState2()
+      elif (rpm > 7800):
         showState1()
       else:
         showState0()
     elif (id == 0x420):
       temp = int(readbuf[0]) - 40
-      display.text("W Temp: " + str(temp), 17, 34, True)
+
+    display.text("RPM   : " + str(rpm), 17, 17, True)
+    display.text("W Temp: " + str(temp), 17, 34, True)
 
     display.show()
 
